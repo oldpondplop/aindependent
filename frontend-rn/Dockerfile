@@ -97,7 +97,8 @@ ARG GROUP_ID=1000
 RUN groupadd -g $GROUP_ID devgroup \
   && useradd -m -u $USER_ID -g devgroup devuser \
   && mkdir -p /frontend-rn \
-  && chown -R devuser:devgroup /frontend-rn
+  && chown -R devuser:devgroup /frontend-rn \
+  && echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Set working directory inside container
 WORKDIR /frontend-rn
