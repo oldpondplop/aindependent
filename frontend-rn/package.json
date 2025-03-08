@@ -45,7 +45,10 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "yarn": "^1.22.22"
+    "yarn": "^1.22.22",
+    "expo-auth-session": "~6.0.3",
+    "expo-crypto": "~14.0.2",
+    "expo-secure-store": "~14.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
