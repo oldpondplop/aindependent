@@ -30,6 +30,11 @@ async def login_google(request: Request):
     # Check if request is from mobile app
     is_mobile = request.headers.get("User-Agent", "").lower().find("expo") != -1
     
+    # Get code_challenge and code_challenge_method from query params for PKCE flow
+    code_challenge = request.query_params.get("code_challenge")
+    code_challenge_method = request.query_params.get("code_challenge_method", "S256")
+    
+    # Base parameters for authorization request
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
         "response_type": "code",
@@ -37,6 +42,11 @@ async def login_google(request: Request):
         "redirect_uri": settings.GOOGLE_MOBILE_REDIRECT_URI if is_mobile else settings.GOOGLE_REDIRECT_URI,
         "prompt": "select_account",
     }
+    
+    # Add PKCE parameters if provided (for mobile clients)
+    if code_challenge:
+        params["code_challenge"] = code_challenge
+        params["code_challenge_method"] = code_challenge_method
 
     authorize_url = f"{settings.GOOGLE_AUTH_URL}?" + "&".join(
         f"{k}={v}" for k, v in params.items()
@@ -134,18 +144,26 @@ async def auth_google(session: SessionDep, code: str):
 
 
 @router.get("/login/auth/google/mobile")
-async def auth_google_mobile(session: SessionDep, code: str):
+async def auth_google_mobile(session: SessionDep, code: str, code_verifier: str = None):
     """
     Handle Google OAuth2 callback for mobile apps and return JSON response with token.
+    Uses PKCE flow when code_verifier is provided.
     """
     try:
+        # Base token request data
         token_data = {
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
             "redirect_uri": settings.GOOGLE_MOBILE_REDIRECT_URI,
             "grant_type": "authorization_code",
         }
+        
+        # Add code_verifier for PKCE flow if provided
+        if code_verifier:
+            token_data["code_verifier"] = code_verifier
+        else:
+            # For non-PKCE flow, client secret is required
+            token_data["client_secret"] = settings.GOOGLE_CLIENT_SECRET
 
         async with httpx.AsyncClient() as client:
             # Exchange authorization code for access token
