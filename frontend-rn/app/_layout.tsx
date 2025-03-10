@@ -12,8 +12,6 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
-import { AuthGuard } from '@/components/AuthGuard';
-
 
 OpenAPI.BASE = Constants.expoConfig?.extra?.API_URL || 'http://localhost:8000';
 const queryClient = new QueryClient();
@@ -43,13 +41,11 @@ export default function RootLayout() {
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <AuthGuard>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </AuthGuard>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(app)" />
+            <Stack.Screen name="+not-found" options={{ headerShown: true }} />
+          </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
       </QueryClientProvider>
