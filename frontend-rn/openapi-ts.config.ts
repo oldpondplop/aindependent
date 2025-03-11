@@ -1,28 +1,37 @@
-import { defineConfig } from "@hey-api/openapi-ts"
+import { defineConfig } from "@hey-api/openapi-ts";
+import { defaultPlugins } from '@hey-api/openapi-ts';
+
+interface Operation {
+  id: string;
+  tags?: string[];
+}
+
+function buildMethodName(operation: Operation): string {
+  let name = operation.id;
+  const prefix = operation.tags?.[0];
+  if (prefix && name.toLowerCase().startsWith(prefix.toLowerCase())) {
+    name = name.slice(prefix.length);
+  }
+  name = name.trim();
+  if (!name) {
+    name = operation.id;
+  }
+  return name.charAt(0).toLowerCase() + name.slice(1);
+}
 
 export default defineConfig({
-  client: "legacy/axios",
   input: "./openapi.json",
   output: "./src/client",
-  // exportSchemas: true,
+  // @ts-ignore
   plugins: [
+    ...defaultPlugins,
+    "@tanstack/react-query",
+    "@hey-api/client-fetch",
     {
       name: "@hey-api/sdk",
-      // NOTE: this doesn't allow tree-shaking
       asClass: true,
       operationId: true,
-      methodNameBuilder: (operation) => {
-        // @ts-ignore
-        let name: string = operation.name
-        // @ts-ignore
-        const service: string = operation.service
-
-        if (service && name.toLowerCase().startsWith(service.toLowerCase())) {
-          name = name.slice(service.length)
-        }
-
-        return name.charAt(0).toLowerCase() + name.slice(1)
-      },
+      methodNameBuilder: buildMethodName,
     },
   ],
-})
+});
