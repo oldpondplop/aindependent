@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'frontend-rn'
+rootProject.name = 'aindependent'
 
 dependencyResolutionManagement {
   versionCatalogs {

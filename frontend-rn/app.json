@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "frontend-rn",
-    "slug": "frontend-rn",
+    "name": "aindependent",
+    "slug": "aindependent",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "aindependent",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.frontendrn"
+      "bundleIdentifier": "com.anonymous.aindependent"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.frontendrn"
+      "package": "com.anonymous.aindependent"
     },
     "web": {
       "bundler": "metro",
