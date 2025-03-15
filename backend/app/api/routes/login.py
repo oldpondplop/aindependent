@@ -3,8 +3,9 @@ from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
@@ -22,35 +23,97 @@ from app.utils import (
 router = APIRouter(tags=["login"])
 
 
-@router.get("/login/google")
-async def login_google():
+class GoogleAuthRequest(BaseModel):
+    code: str
+    codeVerifier: str
+    platform: str
+
+
+@router.post("/login/auth/google", response_model=Token)
+async def auth_google(session: SessionDep, payload: GoogleAuthRequest):
     """
-    Redirect users to Google for authentication
+    Receives the Google auth 'code' plus the PKCE 'codeVerifier' from the Expo app.
+    Exchanges them for Google tokens. Fetches or creates a local user. Returns our own JWT.
     """
-    params = {
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-        "prompt": "select_account",
+    platform = payload.platform.lower().strip()
+
+    token_data = {
+        "client_id": settings.GOOGLE_WEB_CLIENT_ID
+        if platform == "web"
+        else settings.GOOGLE_ANDROID_CLIENT_ID,
+        "client_secret": settings.GOOGLE_WEB_CLIENT_SECRET
+        if platform == "web"
+        else None,
+        "grant_type": "authorization_code",
+        "code": payload.code,
+        "redirect_uri": settings.GOOGLE_WEB_REDIRECT_URI
+        if platform == "web"
+        else settings.GOOGLE_ANDROID_REDIRECT_URI,
+        "code_verifier": None if platform == "web" else payload.codeVerifier,
     }
+    import pprint
 
-    authorize_url = f"{settings.GOOGLE_AUTH_URL}?" + "&".join(
-        f"{k}={v}" for k, v in params.items()
-    )
-    return RedirectResponse(authorize_url)
+    pprint.pprint(token_data)
+    async with httpx.AsyncClient() as client:
+        # Exchange authorization code for access token
+        token_response = await client.post(settings.GOOGLE_TOKEN_URL, data=token_data)
+        if token_response.status_code != 200:
+            raise HTTPException(
+                status_code=token_response.status_code,
+                detail="Failed to retrieve access token.",
+            )
+        token_json = token_response.json()
+
+        # Fetch user info from Google
+        userinfo_response = await client.get(
+            settings.GOOGLE_USER_INFO_URL,
+            headers={"Authorization": f"Bearer {token_json['access_token']}"},
+        )
+        if userinfo_response.status_code != 200:
+            raise HTTPException(
+                status_code=userinfo_response.status_code,
+                detail="Failed to retrieve user info.",
+            )
+        user_json = userinfo_response.json()
+
+        # TODO: properly create a user, add schemas
+        user_email = user_json.get("email")
+        if not user_email:
+            raise HTTPException(
+                status_code=400, detail="Email not available in user info."
+            )
+
+        # Check if user exists in database
+        user = crud.get_user_by_email(session=session, email=user_email)
+        if not user:
+            user = User(
+                email=user_email,
+                full_name=user_json.get("name", ""),
+                is_active=True,
+                google_id=user_json["sub"],
+            )
+            session.add(user)
+            session.commit()
+
+        # Generate JWT token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_token = security.create_access_token(
+            subject=user.id, expires_delta=access_token_expires
+        )
+
+        return Token(access_token=jwt_token, token_type="bearer")
 
 
-@router.get("/login/auth/google")
-async def auth_google(session: SessionDep, code: str):
+@router.get("/login/auth/google1")
+async def auth_google1(session: SessionDep, code: str):
     """
     Handle Google OAuth2 callback and issue a JWT token.
     """
     token_data = {
         "code": code,
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "client_secret": settings.GOOGLE_CLIENT_SECRET,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "client_id": settings.GOOGLE_WEB_CLIENT_ID,
+        "client_secret": settings.GOOGLE_WEB_CLIENT_SECRET,
+        "redirect_uri": settings.GOOGLE_WEB_REDIRECT_URI,
         "grant_type": "authorization_code",
     }
 

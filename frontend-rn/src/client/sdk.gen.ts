@@ -7,9 +7,12 @@ import {
   urlSearchParamsBodySerializer,
 } from "@hey-api/client-fetch"
 import type {
-  LoginLoginGoogleData,
   LoginAuthGoogleData,
+  LoginAuthGoogleResponse,
   LoginAuthGoogleError,
+  LoginLoginGoogle1Data,
+  LoginAuthGoogle1Data,
+  LoginAuthGoogle1Error,
   LoginLoginForAccessTokenData,
   LoginLoginForAccessTokenResponse,
   LoginLoginForAccessTokenError,
@@ -72,9 +75,6 @@ import type {
   ItemsUpdateItemData,
   ItemsUpdateItemResponse,
   ItemsUpdateItemError,
-  PrivateCreateUserData,
-  PrivateCreateUserResponse,
-  PrivateCreateUserError,
 } from "./types.gen"
 import { client as _heyApiClient } from "./client.gen"
 
@@ -97,35 +97,57 @@ export type Options<
 
 export class LoginService {
   /**
-   * Login Google
+   * Auth Google
+   * Receives the Google auth 'code' plus the PKCE 'codeVerifier' from the Expo app.
+   * Exchanges them for Google tokens. Fetches or creates a local user. Returns our own JWT.
+   */
+  public static authGoogle<ThrowOnError extends boolean = false>(
+    options: Options<LoginAuthGoogleData, ThrowOnError>,
+  ) {
+    return (options.client ?? _heyApiClient).post<
+      LoginAuthGoogleResponse,
+      LoginAuthGoogleError,
+      ThrowOnError
+    >({
+      url: "/api/v1/login/auth/google",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    })
+  }
+
+  /**
+   * Login Google1
    * Redirect users to Google for authentication
    */
-  public static loginGoogle<ThrowOnError extends boolean = false>(
-    options?: Options<LoginLoginGoogleData, ThrowOnError>,
+  public static loginGoogle1<ThrowOnError extends boolean = false>(
+    options?: Options<LoginLoginGoogle1Data, ThrowOnError>,
   ) {
     return (options?.client ?? _heyApiClient).get<
       unknown,
       unknown,
       ThrowOnError
     >({
-      url: "/api/v1/login/google",
+      url: "/api/v1/login/google1",
       ...options,
     })
   }
 
   /**
-   * Auth Google
+   * Auth Google1
    * Handle Google OAuth2 callback and issue a JWT token.
    */
-  public static authGoogle<ThrowOnError extends boolean = false>(
-    options: Options<LoginAuthGoogleData, ThrowOnError>,
+  public static authGoogle1<ThrowOnError extends boolean = false>(
+    options: Options<LoginAuthGoogle1Data, ThrowOnError>,
   ) {
     return (options.client ?? _heyApiClient).get<
       unknown,
-      LoginAuthGoogleError,
+      LoginAuthGoogle1Error,
       ThrowOnError
     >({
-      url: "/api/v1/login/auth/google",
+      url: "/api/v1/login/auth/google1",
       ...options,
     })
   }
@@ -640,29 +662,6 @@ export class ItemsService {
         },
       ],
       url: "/api/v1/items/{id}",
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-    })
-  }
-}
-
-export class PrivateService {
-  /**
-   * Create User
-   * Create a new user.
-   */
-  public static createUser<ThrowOnError extends boolean = false>(
-    options: Options<PrivateCreateUserData, ThrowOnError>,
-  ) {
-    return (options.client ?? _heyApiClient).post<
-      PrivateCreateUserResponse,
-      PrivateCreateUserError,
-      ThrowOnError
-    >({
-      url: "/api/v1/private/users/",
       ...options,
       headers: {
         "Content-Type": "application/json",

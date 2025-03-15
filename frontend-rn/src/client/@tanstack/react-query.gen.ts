@@ -6,7 +6,6 @@ import {
   UsersService,
   UtilsService,
   ItemsService,
-  PrivateService,
 } from "../sdk.gen"
 import {
   queryOptions,
@@ -14,8 +13,11 @@ import {
   type DefaultError,
 } from "@tanstack/react-query"
 import type {
-  LoginLoginGoogleData,
   LoginAuthGoogleData,
+  LoginAuthGoogleError,
+  LoginAuthGoogleResponse,
+  LoginLoginGoogle1Data,
+  LoginAuthGoogle1Data,
   LoginLoginForAccessTokenData,
   LoginLoginForAccessTokenError,
   LoginLoginForAccessTokenResponse,
@@ -68,9 +70,6 @@ import type {
   ItemsUpdateItemData,
   ItemsUpdateItemError,
   ItemsUpdateItemResponse,
-  PrivateCreateUserData,
-  PrivateCreateUserError,
-  PrivateCreateUserResponse,
 } from "../types.gen"
 import { client as _heyApiClient } from "../client.gen"
 
@@ -108,24 +107,6 @@ const createQueryKey = <TOptions extends Options>(
   return [params]
 }
 
-export const loginGoogleQueryKey = (options?: Options<LoginLoginGoogleData>) =>
-  createQueryKey("loginLoginGoogle", options)
-
-export const loginGoogleOptions = (options?: Options<LoginLoginGoogleData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await LoginService.loginGoogle({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: loginGoogleQueryKey(options),
-  })
-}
-
 export const authGoogleQueryKey = (options: Options<LoginAuthGoogleData>) =>
   createQueryKey("loginAuthGoogle", options)
 
@@ -141,6 +122,65 @@ export const authGoogleOptions = (options: Options<LoginAuthGoogleData>) => {
       return data
     },
     queryKey: authGoogleQueryKey(options),
+  })
+}
+
+export const authGoogleMutation = (
+  options?: Partial<Options<LoginAuthGoogleData>>,
+) => {
+  const mutationOptions: UseMutationOptions<
+    LoginAuthGoogleResponse,
+    LoginAuthGoogleError,
+    Options<LoginAuthGoogleData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await LoginService.authGoogle({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const loginGoogle1QueryKey = (
+  options?: Options<LoginLoginGoogle1Data>,
+) => createQueryKey("loginLoginGoogle1", options)
+
+export const loginGoogle1Options = (
+  options?: Options<LoginLoginGoogle1Data>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await LoginService.loginGoogle1({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: loginGoogle1QueryKey(options),
+  })
+}
+
+export const authGoogle1QueryKey = (options: Options<LoginAuthGoogle1Data>) =>
+  createQueryKey("loginAuthGoogle1", options)
+
+export const authGoogle1Options = (options: Options<LoginAuthGoogle1Data>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await LoginService.authGoogle1({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: authGoogle1QueryKey(options),
   })
 }
 
@@ -740,44 +780,6 @@ export const updateItemMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await ItemsService.updateItem({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const createUserQueryKey = (options: Options<PrivateCreateUserData>) =>
-  createQueryKey("privateCreateUser", options)
-
-export const createUserOptions = (options: Options<PrivateCreateUserData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await PrivateService.createUser({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: createUserQueryKey(options),
-  })
-}
-
-export const createUserMutation = (
-  options?: Partial<Options<PrivateCreateUserData>>,
-) => {
-  const mutationOptions: UseMutationOptions<
-    PrivateCreateUserResponse,
-    PrivateCreateUserError,
-    Options<PrivateCreateUserData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await PrivateService.createUser({
         ...options,
         ...localOptions,
         throwOnError: true,

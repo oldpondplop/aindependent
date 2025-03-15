@@ -9,6 +9,12 @@ export type BodyLoginLoginForAccessToken = {
   client_secret?: string | null
 }
 
+export type GoogleAuthRequest = {
+  code: string
+  codeVerifier: string
+  platform: string
+}
+
 export type HttpValidationError = {
   detail?: Array<ValidationError>
 }
@@ -42,13 +48,6 @@ export type Message = {
 export type NewPassword = {
   token: string
   new_password: string
-}
-
-export type PrivateUserCreate = {
-  email: string
-  password: string
-  full_name: string
-  is_verified?: boolean
 }
 
 export type Token = {
@@ -107,26 +106,10 @@ export type ValidationError = {
   type: string
 }
 
-export type LoginLoginGoogleData = {
-  body?: never
+export type LoginAuthGoogleData = {
+  body: GoogleAuthRequest
   path?: never
   query?: never
-  url: "/api/v1/login/google"
-}
-
-export type LoginLoginGoogleResponses = {
-  /**
-   * Successful Response
-   */
-  200: unknown
-}
-
-export type LoginAuthGoogleData = {
-  body?: never
-  path?: never
-  query: {
-    code: string
-  }
   url: "/api/v1/login/auth/google"
 }
 
@@ -141,6 +124,49 @@ export type LoginAuthGoogleError =
   LoginAuthGoogleErrors[keyof LoginAuthGoogleErrors]
 
 export type LoginAuthGoogleResponses = {
+  /**
+   * Successful Response
+   */
+  200: Token
+}
+
+export type LoginAuthGoogleResponse =
+  LoginAuthGoogleResponses[keyof LoginAuthGoogleResponses]
+
+export type LoginLoginGoogle1Data = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/api/v1/login/google1"
+}
+
+export type LoginLoginGoogle1Responses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type LoginAuthGoogle1Data = {
+  body?: never
+  path?: never
+  query: {
+    code: string
+  }
+  url: "/api/v1/login/auth/google1"
+}
+
+export type LoginAuthGoogle1Errors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type LoginAuthGoogle1Error =
+  LoginAuthGoogle1Errors[keyof LoginAuthGoogle1Errors]
+
+export type LoginAuthGoogle1Responses = {
   /**
    * Successful Response
    */
@@ -723,33 +749,6 @@ export type ItemsUpdateItemResponses = {
 
 export type ItemsUpdateItemResponse =
   ItemsUpdateItemResponses[keyof ItemsUpdateItemResponses]
-
-export type PrivateCreateUserData = {
-  body: PrivateUserCreate
-  path?: never
-  query?: never
-  url: "/api/v1/private/users/"
-}
-
-export type PrivateCreateUserErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type PrivateCreateUserError =
-  PrivateCreateUserErrors[keyof PrivateCreateUserErrors]
-
-export type PrivateCreateUserResponses = {
-  /**
-   * Successful Response
-   */
-  200: UserPublic
-}
-
-export type PrivateCreateUserResponse =
-  PrivateCreateUserResponses[keyof PrivateCreateUserResponses]
 
 export type ClientOptions = {
   baseUrl: `${string}://${string}` | (string & {})

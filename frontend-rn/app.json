@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "aindependent",
+    "scheme": "com.anonymous.aindependent",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

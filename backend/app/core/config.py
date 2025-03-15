@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    BACKEND_HOST: str = "http://localhost:8000"
-    FRONTEND_HOST: str = "http://localhost:5173"
+    BACKEND_HOST: str = "http://127.0.0.1:8000"
+    FRONTEND_HOST: str = "http://127.0.0.1:8081"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     BACKEND_CORS_ORIGINS: Annotated[
@@ -47,7 +47,8 @@ class Settings(BaseSettings):
     @property
     def all_cors_origins(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
+            self.FRONTEND_HOST,
+            self.BACKEND_HOST,
         ]
 
     PROJECT_NAME: str
@@ -96,16 +97,31 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
+    # ---- GOOGLE AUTH ----
+    # web
+    GOOGLE_WEB_CLIENT_ID: str = ""
+    GOOGLE_WEB_CLIENT_SECRET: str = ""
+
+    @property
+    def GOOGLE_WEB_REDIRECT_URI(self) -> str:
+        return "http://127.0.0.1:8081/oauthredirect"
+        # return 'http://127.0.0.1:8000/api/v1/login/google/callback'
+        # return f"{self.BACKEND_HOST}{self.API_V1_STR}/login/auth/google"
+
+    # android
+    GOOGLE_ANDROID_CLIENT_ID: str = ""
+
+    @property
+    def GOOGLE_ANDROID_REDIRECT_URI(self) -> str:
+        # TODO: this is hardcoded, need to change it and fix redirect to sign-in
+        return "com.anonymous.aindependent:/sign-in"
+
+    # URLS
     GOOGLE_AUTH_URL: str = "https://accounts.google.com/o/oauth2/auth"
     GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
     GOOGLE_USER_INFO_URL: str = "https://www.googleapis.com/oauth2/v3/userinfo"
-
-    @property
-    def GOOGLE_REDIRECT_URI(self) -> str:
-        # return f"{self.BACKEND_HOST}{self.API_V1_STR}/login/auth/google"
-        return f"http://127.0.0.1:8000{self.API_V1_STR}/login/auth/google"
+    GOOGLE_REVOKE_URL: str = "https://oauth2.googleapis.com/revoke"
+    GOOGLE_SCOPES: list[str] = ["openid", "email", "profile"]
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
