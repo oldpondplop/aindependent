@@ -52,6 +52,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
+
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
@@ -96,16 +97,23 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
+    # Google OAuth settings
+    # Replace with your actual Google OAuth credentials
+    GOOGLE_CLIENT_ID: str = "YOUR_GOOGLE_CLIENT_ID_HERE"  # <-- Replace with your Google Client ID
+    GOOGLE_CLIENT_SECRET: str = "YOUR_GOOGLE_CLIENT_SECRET_HERE"  # <-- Replace with your Google Client Secret
     GOOGLE_AUTH_URL: str = "https://accounts.google.com/o/oauth2/auth"
     GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
     GOOGLE_USER_INFO_URL: str = "https://www.googleapis.com/oauth2/v3/userinfo"
 
     @property
     def GOOGLE_REDIRECT_URI(self) -> str:
-        # return f"{self.BACKEND_HOST}{self.API_V1_STR}/login/auth/google"
-        return f"http://127.0.0.1:8000{self.API_V1_STR}/login/auth/google"
+        # Use the proper backend host instead of hardcoded value
+        return f"{self.BACKEND_HOST}{self.API_V1_STR}/login/auth/google"
+
+    # Mobile-specific redirect URI for deep linking
+    @property
+    def GOOGLE_MOBILE_REDIRECT_URI(self) -> str:
+        return f"{self.BACKEND_HOST}{self.API_V1_STR}/login/auth/google/mobile"
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
