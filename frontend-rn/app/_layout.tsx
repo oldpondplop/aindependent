@@ -11,7 +11,7 @@ import { OpenAPI } from '@/src/client';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useReactQueryDevTools } from '@dev-plugins/react-query';
-
+import { AuthProvider } from '@/hooks/useAuth';
 
 OpenAPI.BASE = Constants.expoConfig?.extra?.API_URL || 'http://localhost:8000';
 const queryClient = new QueryClient();
@@ -20,7 +20,7 @@ const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  useReactQueryDevTools(queryClient);  // TODO: this is only used for debugging, delte this in prod.
+  useReactQueryDevTools(queryClient);  // TODO: this is only used for debugging, delete this in prod.
 
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -38,14 +38,17 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(app)" />
+            <Stack.Screen name="+not-found" options={{ headerShown: true }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
